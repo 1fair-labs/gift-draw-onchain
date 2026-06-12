@@ -1,0 +1,508 @@
+{
+  "address": "FZzo6eBAu9qzoNWNAHvw3qjgT6J89fZeAq9xUXjiyPed",
+  "metadata": {
+    "name": "gift_draw_registry",
+    "version": "0.1.0",
+    "spec": "0.1.0"
+  },
+  "instructions": [
+    {
+      "name": "initialize",
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "treasury",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "roll_kind",
+      "discriminator": [
+        245,
+        157,
+        217,
+        9,
+        85,
+        89,
+        62,
+        248
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "buyer"
+        }
+      ],
+      "args": [
+        {
+          "name": "purchase_tx_sig",
+          "type": {
+            "array": [
+              "u8",
+              64
+            ]
+          }
+        },
+        {
+          "name": "ticket_index",
+          "type": "u16"
+        },
+        {
+          "name": "ticket_id",
+          "type": "u64"
+        },
+        {
+          "name": "ticket_serial",
+          "type": "u64"
+        },
+        {
+          "name": "origin",
+          "type": "u8"
+        },
+        {
+          "name": "gift_amount_micro",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "draw_randomness",
+      "discriminator": [
+        176,
+        70,
+        97,
+        33,
+        118,
+        184,
+        189,
+        151
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "draw_seed",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "draw_id",
+          "type": "string"
+        },
+        {
+          "name": "period_end_iso",
+          "type": "string"
+        },
+        {
+          "name": "merkle_root_hex",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "commit_draw_result",
+      "discriminator": [
+        225,
+        248,
+        19,
+        36,
+        213,
+        115,
+        188,
+        46
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "draw_seed"
+        },
+        {
+          "name": "draw_commit",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "draw_id",
+          "type": "string"
+        },
+        {
+          "name": "settlement_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "winner_count",
+          "type": "u32"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Config",
+      "discriminator": [
+        155,
+        12,
+        170,
+        224,
+        30,
+        250,
+        204,
+        130
+      ]
+    },
+    {
+      "name": "DrawSeed",
+      "discriminator": [
+        185,
+        132,
+        176,
+        34,
+        238,
+        55,
+        82,
+        197
+      ]
+    },
+    {
+      "name": "DrawCommit",
+      "discriminator": [
+        183,
+        32,
+        124,
+        248,
+        106,
+        188,
+        253,
+        80
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "KindRolledV2",
+      "discriminator": [
+        174,
+        150,
+        178,
+        82,
+        160,
+        253,
+        213,
+        57
+      ]
+    },
+    {
+      "name": "DrawSeedCommitted",
+      "discriminator": [
+        88,
+        12,
+        45,
+        67,
+        89,
+        201,
+        44,
+        90
+      ]
+    },
+    {
+      "name": "DrawResultCommitted",
+      "discriminator": [
+        12,
+        34,
+        56,
+        78,
+        90,
+        112,
+        134,
+        156
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "DrawIdTooLong",
+      "msg": "draw_id exceeds max length"
+    },
+    {
+      "code": 6001,
+      "name": "DrawIdMismatch",
+      "msg": "draw_id does not match draw_seed account"
+    },
+    {
+      "code": 6002,
+      "name": "SpecVersionMismatch",
+      "msg": "settlement spec version mismatch"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidMerkleRoot",
+      "msg": "invalid merkle_root hex"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidOrigin",
+      "msg": "invalid roll origin"
+    },
+    {
+      "code": 6005,
+      "name": "InvalidTicketId",
+      "msg": "invalid ticket_id"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidOrigin",
+      "msg": "invalid roll origin"
+    },
+    {
+      "code": 6005,
+      "name": "InvalidTicketId",
+      "msg": "invalid ticket_id"
+    }
+  ],
+  "types": [
+    {
+      "name": "Config",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury",
+            "type": "pubkey"
+          },
+          {
+            "name": "settlement_spec_version",
+            "type": "u16"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DrawSeed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "draw_id_len",
+            "type": "u8"
+          },
+          {
+            "name": "draw_id",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "seed",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "merkle_root",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "spec_version",
+            "type": "u16"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DrawCommit",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "draw_id_len",
+            "type": "u8"
+          },
+          {
+            "name": "draw_id",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "seed",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "merkle_root",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "settlement_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "spec_version",
+            "type": "u16"
+          },
+          {
+            "name": "winner_count",
+            "type": "u32"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "KindRolledV2",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "ticket_id",
+            "type": "u64"
+          },
+          {
+            "name": "ticket_serial",
+            "type": "u64"
+          },
+          {
+            "name": "purchase_tx_sig",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          },
+          {
+            "name": "buyer",
+            "type": "pubkey"
+          },
+          {
+            "name": "ticket_index",
+            "type": "u16"
+          },
+          {
+            "name": "origin",
+            "type": "u8"
+          },
+          {
+            "name": "gift_amount_micro",
+            "type": "u64"
+          },
+          {
+            "name": "roll",
+            "type": "u32"
+          },
+          {
+            "name": "kind",
+            "type": "u8"
+          },
+          {
+            "name": "slot",
+            "type": "u64"
+          },
+          {
+            "name": "registry_version",
+            "type": "u16"
+          },
+          {
+            "name": "project_tag",
+            "type": "u32"
+          }
+        ]
+      }
+    }
+  ]
+}

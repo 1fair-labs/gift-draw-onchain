@@ -1,0 +1,24 @@
+{
+  "name": "gift-draw-onchain",
+  "version": "1.0.0-devnet",
+  "private": true,
+  "type": "module",
+  "description": "Public on-chain draw rules for GiftDraw.today",
+  "scripts": {
+    "verify-draw-commit": "tsx scripts/verify-draw-commit.ts",
+    "decode-kind-rolled": "tsx scripts/decode-kind-rolled.ts"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.30.1",
+    "@solana/web3.js": "^1.95.4",
+    "@supabase/supabase-js": "^2.49.1",
+    "bn.js": "^5.2.1",
+    "bs58": "^6.0.0",
+    "date-fns": "^3.6.0",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.8.3"
+  }
+}

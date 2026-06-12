@@ -1,0 +1,16 @@
+node_modules/
+dist/
+target/
+.env
+.env.*
+!.env.example
+*.json
+!idl/gift_draw_registry.json
+!server/lib/gift-draw-registry.idl.json
+!package.json
+!package-lock.json
+!tsconfig.json
+*-keypair.json
+.solana-deploy-keypair.json
+phantom-keypair.json
+.DS_Store

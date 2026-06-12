@@ -1,0 +1,25 @@
+[toolchain]
+anchor_version = "0.30.1"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+gift_draw_registry = "FZzo6eBAu9qzoNWNAHvw3qjgT6J89fZeAq9xUXjiyPed"
+
+[programs.devnet]
+gift_draw_registry = "FZzo6eBAu9qzoNWNAHvw3qjgT6J89fZeAq9xUXjiyPed"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "devnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.anchor.json -t 1000000 tests/**/*.ts"
+
+[test]
+startup_wait = 10000
