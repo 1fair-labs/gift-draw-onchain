@@ -1,0 +1,22 @@
+{
+  "name": "gift-draw-onchain",
+  "private": true,
+  "version": "20.0.0",
+  "type": "module",
+  "description": "On-chain transparency mirror for GiftDraw.today — program source, settlement rules, verification scripts",
+  "scripts": {
+    "verify-program-binary": "tsx scripts/verify-program-binary.ts",
+    "verify-entrants": "tsx scripts/verify-entrants.ts",
+    "verify-settlement": "tsx scripts/verify-settlement.ts",
+    "decode-kind-rolled": "tsx scripts/decode-kind-rolled.ts"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.95.4",
+    "bs58": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.16.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.8.3"
+  }
+}

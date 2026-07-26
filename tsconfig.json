@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022"],
+    "types": ["node"],
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  // Only what the verification scripts actually execute. The rest of `server/lib` is mirrored
+  // verbatim for reading and needs the product's full dependency set to compile — see the README.
+  "include": [
+    "types/**/*.d.ts",
+    "scripts/**/*.ts",
+    "src/lib/on-chain-gift-draw/kind.ts",
+    "src/lib/on-chain-gift-draw/pda.ts",
+    "src/lib/on-chain-gift-draw/program-id.ts",
+    "src/lib/ticket-economy.ts",
+    "server/lib/draw-entrant-rules.ts",
+    "server/lib/draw-settlement-seed.ts",
+    "server/lib/draw-ticket-weights.ts",
+    "server/lib/gift-amount-micro.ts",
+    "server/lib/settlement-commit-hash.ts",
+    "server/lib/settlement-prize-commit.ts",
+    "server/lib/ticket-origin.ts"
+  ]
+}
