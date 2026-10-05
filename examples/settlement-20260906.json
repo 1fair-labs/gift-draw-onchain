@@ -1,0 +1,11 @@
+{
+  "drawId": "20260906",
+  "specVersion": 20,
+  "seedHex": "e0caa4c8ac006a307c2bd59c80f50896d7d0b02e528e46748a4373173858010f",
+  "merkleRootHex": "b2bdbe6dba66f9a26cfa13c4deb9104da320aadd809be069594378599c1d33e2",
+  "prizes": [
+    { "ticket_id": 82, "prize_bucket": "main_gift", "rank": 1, "gift_amount": 24.57105878 },
+    { "ticket_id": 93, "prize_bucket": "main_gift", "rank": 2, "gift_amount": 12.8161646 },
+    { "ticket_id": 84, "prize_bucket": "main_ticket", "rank": 3, "gift_amount": null }
+  ]
+}
