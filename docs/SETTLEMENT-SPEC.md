@@ -130,6 +130,12 @@ winner_pool = max(0, pool − jackpot − company − referral − megaPrize −
 
 Recorded as `winner_pool_snapshot`. Source: `server/lib/draw-settlement.ts`.
 
+**Daily pool guarantee (2026-10-25, no spec change).** If a floor is published for the draw, `pool`
+above is `max(natural_pool, pool_floor_gift)`: every share and `avgGift` are computed from the
+topped-up pool, except `ops`, which stays on the natural pool. The floor and the top-up are recorded
+as `pool_floor_gift` and `pool_topup_gift`; `prize_pool_snapshot` holds the topped-up pool. A change
+to the floor applies from the next draw. Source: `server/lib/daily-pool-floor.ts`.
+
 The **Mega Prize** is not paid out per draw — it accumulates. In the airdrop stage that is all it
 does: the 5% carve above is the whole of it, `mega_prize_amount` per settled draw sums to the pot,
 and no Mega Prize draw runs in this stage (its runner sits behind `if (IS_PAID_STAGE)`). How it is

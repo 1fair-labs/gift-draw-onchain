@@ -36,14 +36,15 @@ import {
 } from './settlement-prize-commit.js';
 import { isFreeOrigin, TICKET_ORIGIN_PURCHASE } from './ticket-origin.js';
 import {
-  computeOpsEstGiftForDraw,
-  reserveOpsLedgerForDraw,
+  computeOpsChargeForDraw,
+  reserveOpsChargeForDraw,
 } from './project-sol-ledger.js';
 import { isAirdropMode } from './airdrop-mode.js';
 import { MEGA_PRIZE_RATE } from './mega-prize.js';
 import { IS_AIRDROP_STAGE, IS_PAID_STAGE, STAGE } from './stage.js';
 import { getAnnouncedDailyDraw, guaranteeForDraw, guaranteeTopUp } from './announced-draws.js';
 import { isVaultEnabled } from './gift-draw-vault-client.js';
+import { getDailyPoolFloorForDraw } from './daily-pool-floor.js';
 
 export const SETTLEMENT_SPEC_VERSION = 22;
 /** First version whose weighted-shuffle keys use 53 random bits instead of 32 (SeedPrng.nextOpenUnit). */
@@ -114,6 +115,34 @@ export async function prepareVerifiedDrawEntrantIds(
   const { verified, excludedCount } = await excludeUnverifiedDrawEntrants(supabase, loaded);
   const sortedIds = verified.map((t) => t.id).sort((a, b) => a - b);
   return { sortedIds, excludedCount };
+}
+
+/**
+ * A draw whose entrants are all free has no pool and nothing to settle, and used to be skipped with
+ * no row and its tickets left `in_draw` for good — the missed-pass check then alerted every ten
+ * minutes. Its entrants move to `toDrawId` instead, and the empty draw is closed by having none.
+ *
+ * Judged on every `in_draw` ticket, not the verified subset: a paid ticket excluded for a missing
+ * roll still means this draw has a real problem, and it stays where it is for the alert to name.
+ * Returns the moved ids; empty when the draw has a paid ticket or no entrants.
+ */
+export async function carryFreeOnlyDrawEntrants(
+  supabase: SupabaseClient,
+  drawId: string,
+  toDrawId: string
+): Promise<number[]> {
+  if (toDrawId === drawId) return [];
+  const loaded = await loadTicketsForSettlement(supabase, drawId);
+  if (!loaded.length || loaded.some((t) => isPaidTicket(t) || isRarePurchasableTicket(t))) return [];
+  const { data, error } = await supabase
+    .from('tickets')
+    .update({ draw_id: toDrawId })
+    .eq('stage', STAGE)
+    .eq('draw_id', drawId)
+    .eq('status', 'in_draw')
+    .select('id');
+  if (error) throw new Error(`free-only carry: ${error.message}`);
+  return (data || []).map((r) => Number((r as { id: number }).id));
 }
 
 /** Load `in_draw` entrants for settlement (verified subset applied separately). */
@@ -420,15 +449,27 @@ export async function settleDrawById(
    * seed, so none should remain.
    */
   const vaultPool = IS_PAID_STAGE && isVaultEnabled();
-  const prizePool = vaultPool
+  const naturalPool = vaultPool
     ? paid.reduce(
         (s, t) => s + (t.vault_assigned_at ? giftEquiv(t.vault_deposit_base) / GIFT_BASE_UNITS_PER_TOKEN : 0),
         0
       )
     : paid.reduce((s, t) => s + giftEquiv(t.purchase_amount_gift_equiv), 0);
+  /**
+   * Free stage: the daily pool guarantee (daily-pool-floor.ts). Below the floor the formula runs on
+   * the floor — every share and `avgGift` below see the topped-up pool. 0 when none is set.
+   */
+  const poolFloor = await getDailyPoolFloorForDraw(drawId, supabase);
+  const poolTopUp = guaranteeTopUp(naturalPool, poolFloor);
+  const prizePool = Math.round((naturalPool + poolTopUp) * 1e8) / 1e8;
   const paidCount = paid.length;
   if (paidCount === 0) {
-    return { ok: true, skipped: true, reason: 'No paid tickets; settlement not run' };
+    // The anchored path carries a free-only draw to the next one before the seed
+    // (carryFreeOnlyDrawEntrants), so this is mostly paid entrants excluded for missing rolls.
+    const why = excludedFromDrawCount
+      ? `${excludedFromDrawCount} excluded: missing on-chain roll`
+      : 'every entrant is free';
+    return { ok: true, skipped: true, reason: `No paid tickets (${tickets.length} free, ${why}); settlement not run` };
   }
 
   assertForceJackpotAllowed(options?.forceJackpotHit);
@@ -460,7 +501,9 @@ export async function settleDrawById(
   let referralAmount = IS_PAID_STAGE ? 0 : prizePool * REFERRAL_RATE;
   /** Mega Prize: 5% off every draw into one winner-takes-all pot (see mega-prize.ts). */
   const megaPrizeAmount = prizePool * MEGA_PRIZE_RATE;
-  const opsEst = await computeOpsEstGiftForDraw(prizePool);
+  // OPS stays on what the players put in: it repays the SOL their tickets cost, not the guarantee.
+  const opsCharge = await computeOpsChargeForDraw(naturalPool);
+  const opsEst = opsCharge.gift;
   const winnerPool = Math.max(
     0,
     prizePool -
@@ -614,6 +657,9 @@ export async function settleDrawById(
       jackpot_payout_total: jackpotHit ? jackpotPayoutTotal : null,
       jackpot_guarantee_gift: jackpotGuarantee,
       jackpot_topup_gift: jackpotTopUp,
+      // Only when a floor applies: the columns come with database_daily_pool_floor.sql, and a
+      // draw without a guarantee must keep settling where that migration has not run.
+      ...(poolFloor > 0 ? { pool_floor_gift: poolFloor, pool_topup_gift: poolTopUp } : {}),
       company_amount: companyAmount,
       burn_amount: burnAmount,
       referral_amount: referralAmount,
@@ -812,7 +858,7 @@ export async function settleDrawById(
   if (finErr) return { ok: false, error: finErr.message };
 
   if (opsEst > 0) {
-    await reserveOpsLedgerForDraw(drawId, opsEst);
+    await reserveOpsChargeForDraw(drawId, opsCharge);
   }
 
   const paidWinners = prizeOrder.filter((w) => isPaidTicket(w)).length;

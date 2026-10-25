@@ -381,6 +381,9 @@ Each share is written to its own column on `draw_settlements` (`jackpot_contribu
 
 These rates are constants at the top of the settlement module, and the resulting per-row amounts are what the on-chain `settlement_hash` commits to.
 
+When a daily pool guarantee is published, the split runs on the topped-up pool — see
+[Daily pool guarantee](#daily-pool-guarantee).
+
 ---
 
 ## Mega Prize
@@ -453,6 +456,32 @@ announcement changes, and the floor may be raised but never lowered.
 This does not change the spec version or the hash: prize amounts enter `settlement_hash` as values,
 never as formulas, so a topped-up payout verifies exactly like any other.
 
+### Daily pool guarantee
+
+Added 2026-10-25. The operator may publish a floor for the **whole pool** of every daily draw. When
+the paid entries bring in less, the draw runs on the floor:
+
+```text
+pool_topup_gift = max(0, pool_floor_gift - natural_pool)
+pool            = natural_pool + pool_topup_gift
+```
+
+The topped-up pool then goes through the normal split above — every share, including the company's,
+is taken from it, and `avgGift = pool / paidCount` rises with it, so prize tickets are worth more as
+well. Only the network-cost charge (`ops_amount_est`) is computed on the natural pool. Once the
+entries reach the floor the top-up is 0 and nothing changes.
+
+- `prize_pool_snapshot` is the pool the formula ran on (topped up); the natural pool is
+  `prize_pool_snapshot − pool_topup_gift`.
+- `pool_floor_gift` and `pool_topup_gift` are snapshotted onto the settlement row, so a draw stays
+  checkable after the floor changes. A change to the floor — up, down or off — applies from the
+  **next** draw, never the one already running ([`server/lib/daily-pool-floor.ts`](server/lib/daily-pool-floor.ts)).
+- In this stage the top-up is paid out of the airdrop allocation: first the part nobody won, then
+  the winnings of players who never verified. The accumulated Mega Prize pot is never used for it.
+
+Like the Grand Prize floor, this changes neither the spec version nor the hash: winner selection
+and the number stream are untouched, and prize amounts enter `settlement_hash` as values.
+
 ---
 
 ## On-chain accounts
@@ -516,6 +545,7 @@ server/lib/                               Production settlement code, mirrored v
   mega-prize.ts                             Mega Prize reserve (5% of each pool)
   mega-prize-schedule.ts                    Period boundaries the reserve is read against
   announced-draws.ts                        Announced payouts and guaranteed floors
+  daily-pool-floor.ts                       Daily pool guarantee: the floor and when it applies
   stage.ts                                  The free/paid split this code branches on
   kind-roll-verify.ts                       Roll event verification
   kind-roll.ts                              Roll formula as the server computes it (v22 and v21)
